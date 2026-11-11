@@ -1,0 +1,30 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NexusBooster.Core", "src\NexusBooster.Core\NexusBooster.Core.csproj", "{5E4E170A-CC4B-49F2-A3D2-8A13EF33B3C1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NexusBooster.App", "src\NexusBooster.App\NexusBooster.App.csproj", "{6F8BC3B4-449B-4E68-9E2E-C4A8EC0439A7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NexusBooster.Core.Tests", "tests\NexusBooster.Core.Tests\NexusBooster.Core.Tests.csproj", "{D754A2B0-1EB5-4A68-AF07-64AB7AB18F4D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5E4E170A-CC4B-49F2-A3D2-8A13EF33B3C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E4E170A-CC4B-49F2-A3D2-8A13EF33B3C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E4E170A-CC4B-49F2-A3D2-8A13EF33B3C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E4E170A-CC4B-49F2-A3D2-8A13EF33B3C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F8BC3B4-449B-4E68-9E2E-C4A8EC0439A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F8BC3B4-449B-4E68-9E2E-C4A8EC0439A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F8BC3B4-449B-4E68-9E2E-C4A8EC0439A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F8BC3B4-449B-4E68-9E2E-C4A8EC0439A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D754A2B0-1EB5-4A68-AF07-64AB7AB18F4D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D754A2B0-1EB5-4A68-AF07-64AB7AB18F4D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D754A2B0-1EB5-4A68-AF07-64AB7AB18F4D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D754A2B0-1EB5-4A68-AF07-64AB7AB18F4D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
