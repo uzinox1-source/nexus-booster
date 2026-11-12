@@ -9,7 +9,8 @@ public static class TweakCatalog
             "Enable Windows Game Mode",
             "Lets Windows prioritize games when they are running.",
             [Dword("Software\\Microsoft\\GameBar", "AutoGameModeEnabled", 1)],
-            "Takes effect the next time a game starts."),
+            "Takes effect the next time a game starts.",
+            TweakCategories.Fps),
         new(
             "background-capture",
             "Disable background game capture",
@@ -18,25 +19,33 @@ public static class TweakCatalog
                 Dword("System\\GameConfigStore", "GameDVR_Enabled", 0),
                 Dword("Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR", "AppCaptureEnabled", 0)
             ],
-            "Restart games that are already open."),
+            "Restart games that are already open.",
+            TweakCategories.Fps,
+            "Moderate",
+            "Turning off background capture also disables some background recording features for this Windows account. Manual recording support may be affected."),
         new(
             "transparency",
             "Reduce transparency effects",
             "Disables Windows transparency for this account to simplify visual effects.",
             [Dword("Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", "EnableTransparency", 0)],
-            "Windows may refresh the effect after sign-in."),
+            "Windows may refresh the effect after sign-in.",
+            TweakCategories.Ui),
         new(
             "menu-delay",
             "Speed up menu response",
             "Sets the account menu delay to 100 ms (the common Windows default is 400 ms).",
             [Text("Control Panel\\Desktop", "MenuShowDelay", "100")],
-            "Sign out and back in if Windows does not refresh the setting."),
+            "Sign out and back in if Windows does not refresh the setting.",
+            TweakCategories.Ui),
         new(
             "window-animations",
             "Turn off window minimize animations",
             "Disables the minimize/maximize animation for this Windows account.",
             [Text("Control Panel\\Desktop\\WindowMetrics", "MinAnimate", "0")],
-            "Sign out and back in if Windows does not refresh the setting."),
+            "Sign out and back in if Windows does not refresh the setting.",
+            TweakCategories.Ui,
+            "Moderate",
+            "This changes pointer acceleration behavior for this Windows account. It does not change the mouse's hardware DPI or polling rate."),
         new(
             "mouse-acceleration",
             "Disable mouse acceleration",
@@ -52,7 +61,8 @@ public static class TweakCatalog
             "Reduce Explorer startup delay",
             "Sets the current-user Explorer startup delay to zero milliseconds.",
             [Dword("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Serialize", "StartupDelayInMSec", 0)],
-            "Applies the next time you sign in.")
+            "Applies the next time you sign in.",
+            TweakCategories.Ui)
     ];
 
     private static TweakValue Dword(string path, string name, int value) =>

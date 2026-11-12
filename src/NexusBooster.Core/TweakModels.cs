@@ -7,6 +7,16 @@ public enum SettingKind
     DWord
 }
 
+public static class TweakCategories
+{
+    public const string Fps = "FPS & Gaming";
+    public const string Ui = "UI & Responsiveness";
+    public const string Privacy = "Privacy & Security";
+    public const string Ping = "Ping & Network";
+    public const string Power = "Power, USB & Hardware";
+    public const string Maintenance = "Maintenance";
+}
+
 public sealed record SettingValue(SettingKind Kind, string Data);
 
 public sealed record TweakValue(
@@ -19,7 +29,10 @@ public sealed record TweakDefinition(
     string Name,
     string Description,
     IReadOnlyList<TweakValue> Values,
-    string RestartNote);
+    string RestartNote,
+    string Category = "General",
+    string Risk = "Low",
+    string? Warning = null);
 
 public sealed record SavedSetting(
     string KeyPath,

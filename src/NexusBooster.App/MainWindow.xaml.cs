@@ -14,6 +14,8 @@ public partial class MainWindow : Window
     private readonly TweakService _tweaks;
     private readonly MouseProfileService _profiles;
     private readonly UserStartupService _startup;
+    private StackPanel? _tweakBrowserList;
+    private ComboBox? _tweakCategorySelector;
 
     public MainWindow()
     {
@@ -106,6 +108,16 @@ public partial class MainWindow : Window
         }
 
         var isApplied = _tweaks.IsApplied(tweak.Id);
+        if (!isApplied && !string.IsNullOrWhiteSpace(tweak.Warning) &&
+            MessageBox.Show(
+                $"WARNING — {tweak.Risk} risk\n\n{tweak.Warning}\n\nContinue to the separate apply confirmation?",
+                $"Warning: {tweak.Name}",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning) != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
         var message = isApplied
             ? $"Restore the saved settings for “{tweak.Name}”?\n\n{tweak.RestartNote}"
             : $"Apply “{tweak.Name}” to this Windows account?\n\n{tweak.Description}\n\nA backup will be saved first. You can undo it here later.\n{tweak.RestartNote}";
@@ -130,6 +142,7 @@ public partial class MainWindow : Window
             }
 
             await RenderTweaksAsync();
+            RenderTweakCategory();
         }
         catch (Exception error)
         {
@@ -177,9 +190,177 @@ public partial class MainWindow : Window
 
     private void Tweaks_Click(object sender, RoutedEventArgs e)
     {
-        ShowDetail("Safe tweaks",
-            "Each change affects only your current Windows account. Nexus records existing values before writing and keeps an Undo action available until you restore them.");
-        TweakList.BringIntoView();
+        TweakBrowser_Click(sender, e);
+    }
+
+    private void TweakBrowser_Click(object sender, RoutedEventArgs e)
+    {
+        var warning = new TextBlock
+        {
+            Text = "Every change is optional. Read the effect and warning before applying; moderate-risk changes show a separate warning and confirmation. Unsupported or risky system-wide changes are not automated.",
+            TextWrapping = TextWrapping.Wrap,
+            Foreground = new SolidColorBrush(Color.FromRgb(255, 200, 107)),
+            FontSize = 11,
+            LineHeight = 17,
+            Margin = new Thickness(0, 0, 0, 12)
+        };
+        _tweakCategorySelector = new ComboBox
+        {
+            ItemsSource = new[]
+            {
+                TweakCategories.Fps,
+                TweakCategories.Ping,
+                TweakCategories.Power,
+                TweakCategories.Privacy,
+                TweakCategories.Ui,
+                "Mouse & Input",
+                TweakCategories.Maintenance
+            },
+            SelectedIndex = 0,
+            MinWidth = 230,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Padding = new Thickness(9, 7, 9, 7),
+            Background = new SolidColorBrush(Color.FromRgb(27, 32, 44)),
+            Foreground = new SolidColorBrush(Color.FromRgb(243, 244, 248)),
+            BorderBrush = new SolidColorBrush(Color.FromRgb(55, 64, 82)),
+            Margin = new Thickness(0, 0, 0, 12)
+        };
+        _tweakBrowserList = new StackPanel();
+        _tweakCategorySelector.SelectionChanged += (_, _) => RenderTweakCategory();
+        ShowDetail(
+            "Tweak categories",
+            "Browse practical settings by topic. The FPS and Ping categories do not promise a performance gain; measure changes in the games and network you actually use.",
+            warning,
+            _tweakCategorySelector,
+            _tweakBrowserList);
+        RenderTweakCategory();
+    }
+
+    private void RenderTweakCategory()
+    {
+        if (_tweakBrowserList is null || _tweakCategorySelector?.SelectedItem is not string category)
+        {
+            return;
+        }
+
+        _tweakBrowserList.Children.Clear();
+        var definitions = category == "Mouse & Input"
+            ? TweakCatalog.All.Where(tweak => tweak.Id == "mouse-acceleration").ToArray()
+            : category == TweakCategories.Privacy
+                ? []
+                : TweakCatalog.All.Where(tweak => string.Equals(tweak.Category, category, StringComparison.Ordinal)).ToArray();
+
+        foreach (var tweak in definitions)
+        {
+            var card = new Border
+            {
+                CornerRadius = new CornerRadius(11),
+                Background = new SolidColorBrush(Color.FromRgb(27, 32, 44)),
+                Padding = new Thickness(13),
+                Margin = new Thickness(0, 0, 0, 9)
+            };
+            var layout = new Grid();
+            layout.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            layout.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            var text = new StackPanel { Margin = new Thickness(0, 0, 12, 0) };
+            text.Children.Add(new TextBlock
+            {
+                Text = tweak.Risk == "Low" ? tweak.Name : $"{tweak.Name} · {tweak.Risk} risk",
+                FontWeight = FontWeights.SemiBold,
+                FontSize = 12.5,
+                Foreground = (Brush)FindResource("TextPrimary")
+            });
+            text.Children.Add(new TextBlock
+            {
+                Text = tweak.Description + " " + tweak.RestartNote,
+                TextWrapping = TextWrapping.Wrap,
+                FontSize = 10.5,
+                LineHeight = 16,
+                Foreground = (Brush)FindResource("TextMuted"),
+                Margin = new Thickness(0, 4, 0, 0)
+            });
+            if (!string.IsNullOrWhiteSpace(tweak.Warning))
+            {
+                text.Children.Add(new TextBlock
+                {
+                    Text = $"WARNING: {tweak.Warning}",
+                    TextWrapping = TextWrapping.Wrap,
+                    FontSize = 10,
+                    LineHeight = 15,
+                    Foreground = new SolidColorBrush(Color.FromRgb(255, 200, 107)),
+                    Margin = new Thickness(0, 7, 0, 0)
+                });
+            }
+            var applied = _tweaks.IsApplied(tweak.Id);
+            var action = new Button
+            {
+                Content = applied ? "Undo" : "Review",
+                Background = applied
+                    ? new SolidColorBrush(Color.FromRgb(52, 73, 70))
+                    : new SolidColorBrush(Color.FromRgb(41, 47, 62)),
+                Padding = new Thickness(12, 7, 12, 7),
+                MinWidth = 66,
+                Tag = tweak,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            action.Click += TweakAction_Click;
+            Grid.SetColumn(action, 1);
+            layout.Children.Add(text);
+            layout.Children.Add(action);
+            card.Child = layout;
+            _tweakBrowserList.Children.Add(card);
+        }
+
+        if (definitions.Length > 0)
+        {
+            return;
+        }
+
+        var guidance = category switch
+        {
+            TweakCategories.Ping => "Ping is mainly determined by your ISP route, game server, congestion, and Wi-Fi quality. Registry “ping fixes” cannot shorten that route. Compare the same server and time of day, test Ethernet versus Wi-Fi, pause large downloads, and check for packet loss before changing settings.",
+            TweakCategories.Power => "USB selective suspend and PCIe Link State Power Management trade power use and heat for lower idle consumption. Results vary by device; changing them globally can reduce battery life or affect sleep/wake behavior. Review Windows Settings or your PC/motherboard maker's guidance manually. Nexus does not change hidden power settings, device power policies, or disable hardware.",
+            TweakCategories.Privacy => "Keep Windows Security, Defender, Firewall, and Windows Update enabled. Avoid blocking vendor or Microsoft domains through the hosts file or disabling diagnostic/update services; those changes can break updates, support, or security. This section is guidance-only; Nexus does not change policy or security settings.",
+            TweakCategories.Maintenance => "Use Windows Storage settings to review temporary files before removing them. Nexus will not purge Prefetch, shader caches, update downloads, or WinSxS; indiscriminate cleanup can slow apps, remove rollback data, or damage servicing. DISM/SFC repair should be run only for a diagnosed Windows problem.",
+            _ => "This topic is guidance-only because the commonly shared tweaks can impair networking, hardware power behavior, security, or Windows servicing."
+        };
+        _tweakBrowserList.Children.Add(new TextBlock
+        {
+            Text = guidance,
+            TextWrapping = TextWrapping.Wrap,
+            Foreground = (Brush)FindResource("TextMuted"),
+            FontSize = 11,
+            LineHeight = 18,
+            Margin = new Thickness(0, 0, 0, 12)
+        });
+
+        if (category == TweakCategories.Power)
+        {
+            AddSettingsButton(_tweakBrowserList, "Open Power & battery settings", "ms-settings:powersleep");
+            AddSettingsButton(_tweakBrowserList, "Open USB settings", "ms-settings:usb");
+        }
+        else if (category == TweakCategories.Maintenance)
+        {
+            AddSettingsButton(_tweakBrowserList, "Open Storage settings", "ms-settings:storagesense");
+        }
+        else if (category == TweakCategories.Ping)
+        {
+            AddSettingsButton(_tweakBrowserList, "Open Network status settings", "ms-settings:network-status");
+        }
+    }
+
+    private static void AddSettingsButton(Panel destination, string label, string uri)
+    {
+        var button = new Button
+        {
+            Content = label + "  →",
+            Background = new SolidColorBrush(Color.FromRgb(36, 42, 55)),
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Margin = new Thickness(0, 0, 0, 8),
+            Tag = uri
+        };
+        button.Click += (_, _) => StartUri(uri);
+        destination.Children.Add(button);
     }
 
     private async void Debloat_Click(object sender, RoutedEventArgs e)
@@ -316,9 +497,19 @@ public partial class MainWindow : Window
 
         var message = entry.IsDisabled
             ? $"Restore “{entry.Name}” to the current-user startup list?"
-            : $"Disable “{entry.Name}” from starting automatically for this account?\n\nThe original registry value will be saved so you can restore it.";
+            : $"WARNING — Disabling a startup item may stop its background sync, notifications, or updater. Only disable items you recognize.\n\nContinue to the separate confirmation for “{entry.Name}”?";
         if (MessageBox.Show(message, entry.IsDisabled ? "Restore startup item" : "Disable startup item",
                 MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        if (!entry.IsDisabled &&
+            MessageBox.Show(
+                $"Disable “{entry.Name}” from starting automatically for this account?\n\nThe original registry value will be saved so you can restore it.",
+                "Confirm startup change",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning) != MessageBoxResult.Yes)
         {
             return;
         }
@@ -357,12 +548,6 @@ public partial class MainWindow : Window
         {
             button.IsEnabled = true;
         }
-    }
-
-    private void Overclock_Click(object sender, RoutedEventArgs e)
-    {
-        ShowDetail("Overclocking safety",
-            "Direct CPU/GPU clock and voltage changes require a verified vendor-supported backend and live temperature/power telemetry. No such backend is connected in this build, so the controls are intentionally unavailable. Use the utility supplied by your GPU or motherboard manufacturer; Nexus will not write firmware or low-level registers.");
     }
 
     private void FpsAdvisor_Click(object sender, RoutedEventArgs e)

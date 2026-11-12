@@ -7,7 +7,8 @@ var tests = new (string Name, Func<Task> Run)[]
     ("Apply removes a value and rollback restores its type", RemoveAndRestoreValue),
     ("Failed apply rolls back every value", FailedApplyRollsBack),
     ("Reject duplicate apply", RejectDuplicateApply),
-    ("Mouse profiles validate and replace by name", SaveMouseProfiles)
+    ("Mouse profiles validate and replace by name", SaveMouseProfiles),
+    ("Catalog categories include warnings for moderate-risk changes", CatalogCategoriesAndWarnings)
 };
 
 var failures = new List<string>();
@@ -114,6 +115,19 @@ static async Task SaveMouseProfiles()
     Assert.Equal(1, profiles.Count);
     Assert.Equal(1600, profiles[0].Dpi);
     await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => service.SaveAsync(new MouseDpiProfile("Bad", 0)));
+}
+
+static Task CatalogCategoriesAndWarnings()
+{
+    Assert.True(TweakCatalog.All.Count >= 7);
+    Assert.True(TweakCatalog.All.All(tweak => !string.IsNullOrWhiteSpace(tweak.Category)));
+    Assert.True(TweakCatalog.All
+        .Where(tweak => tweak.Risk != "Low")
+        .All(tweak => !string.IsNullOrWhiteSpace(tweak.Warning)));
+    Assert.True(TweakCatalog.All.Any(tweak => tweak.Category == TweakCategories.Fps));
+    Assert.True(TweakCatalog.All.Any(tweak => tweak.Category == TweakCategories.Ui));
+    Assert.False(TweakCatalog.All.Any(tweak => tweak.Values.Any(value => value.KeyPath.StartsWith("Software\\Policies\\", StringComparison.Ordinal))));
+    return Task.CompletedTask;
 }
 
 sealed class MemorySettingsStore : IUserSettingsStore

@@ -22,10 +22,9 @@
                     </StackPanel>
                     <TextBlock Text="WORKSPACE" FontSize="10" Foreground="#6F788A" FontWeight="Bold" Margin="10,0,0,8"/>
                     <Button Style="{StaticResource NavButton}" Content="◈   Dashboard" Click="Dashboard_Click"/>
-                    <Button Style="{StaticResource NavButton}" Content="✦   Safe tweaks" Click="Tweaks_Click"/>
+                    <Button Style="{StaticResource NavButton}" Content="✦   Tweak categories" Click="TweakBrowser_Click"/>
                     <Button Style="{StaticResource NavButton}" Content="⌁   Debloat guide" Click="Debloat_Click"/>
                     <Button Style="{StaticResource NavButton}" Content="◉   Mouse profiles" Click="Mouse_Click"/>
-                    <Button Style="{StaticResource NavButton}" Content="⌘   Overclocking" Click="Overclock_Click"/>
                     <Button Style="{StaticResource NavButton}" Content="✧   AI FPS advisor" Click="FpsAdvisor_Click"/>
                     <Button Style="{StaticResource NavButton}" Content="⇩   Official drivers" Click="Drivers_Click"/>
                 </StackPanel>
@@ -99,9 +98,9 @@
                         </Border>
                         <Border CornerRadius="16" Background="#151923" Padding="19" Margin="6,0">
                             <StackPanel>
-                                <TextBlock Text="HARDWARE ACCESS" FontSize="10" FontWeight="Bold" Foreground="#858FA2"/>
-                                <TextBlock Text="Protected" FontSize="21" FontWeight="Bold" Foreground="#43E7C3" Margin="0,10,0,1"/>
-                                <TextBlock Text="No unsupported clock writes" FontSize="11" Foreground="#929AAC"/>
+                                <TextBlock Text="PING &amp; NETWORK" FontSize="10" FontWeight="Bold" Foreground="#858FA2"/>
+                                <TextBlock Text="Measure first" FontSize="21" FontWeight="Bold" Foreground="#43E7C3" Margin="0,10,0,1"/>
+                                <TextBlock Text="No fake ping optimizer tweaks" FontSize="11" Foreground="#929AAC"/>
                             </StackPanel>
                         </Border>
                         <Border CornerRadius="16" Background="#151923" Padding="19" Margin="12,0,0,0">
@@ -133,12 +132,9 @@
                         <StackPanel Grid.Column="1">
                             <Border CornerRadius="18" Background="#151923" Padding="22" Margin="0,0,0,14">
                                 <StackPanel>
-                                    <TextBlock Text="Overclocking" FontSize="18" FontWeight="Bold"/>
-                                    <Border Background="#27251F" CornerRadius="8" Padding="9,6" HorizontalAlignment="Left" Margin="0,12,0,9">
-                                        <TextBlock Text="SAFE MODE · READ ONLY" FontSize="9" FontWeight="Bold" Foreground="#FFC86B"/>
-                                    </Border>
-                                    <TextBlock Text="No verified vendor control backend is connected. Clock and voltage changes are locked; Nexus will not write firmware or low-level registers." TextWrapping="Wrap" Foreground="#AAB2C2" FontSize="12" LineHeight="18"/>
-                                    <Button Content="Why are controls locked?  →" HorizontalAlignment="Left" Margin="0,12,0,0" Background="#242A37" Click="Overclock_Click"/>
+                                    <TextBlock Text="Power, USB &amp; Hardware" FontSize="18" FontWeight="Bold"/>
+                                    <TextBlock Text="Avoid blanket power-bus changes. Some savings settings can affect battery life, heat, or device behavior." TextWrapping="Wrap" Foreground="#AAB2C2" FontSize="12" LineHeight="18" Margin="0,9,0,0"/>
+                                    <Button Content="Review safe categories  →" HorizontalAlignment="Left" Margin="0,12,0,0" Background="#242A37" Click="TweakBrowser_Click"/>
                                 </StackPanel>
                             </Border>
                             <Border CornerRadius="18" Background="#151923" Padding="22">
