@@ -365,6 +365,200 @@ public partial class MainWindow : Window
             "Direct CPU/GPU clock and voltage changes require a verified vendor-supported backend and live temperature/power telemetry. No such backend is connected in this build, so the controls are intentionally unavailable. Use the utility supplied by your GPU or motherboard manufacturer; Nexus will not write firmware or low-level registers.");
     }
 
+    private void FpsAdvisor_Click(object sender, RoutedEventArgs e)
+    {
+        var note = new TextBlock
+        {
+            Text = "This is a local, rule-based advisor—not a connected AI model. It uses only the choices below; it does not scan your PC or game. Suggestions are starting points, not promised FPS gains.",
+            TextWrapping = TextWrapping.Wrap,
+            Foreground = new SolidColorBrush(Color.FromRgb(255, 200, 107)),
+            FontSize = 11,
+            LineHeight = 17,
+            Margin = new Thickness(0, 0, 0, 14)
+        };
+
+        var bottleneck = CreateChoice(
+            "What seems to limit performance?",
+            ["Not sure", "GPU is near full use", "CPU is near full use"]);
+        var resolution = CreateChoice("Game resolution", ["1920 × 1080", "2560 × 1440", "3840 × 2160", "Other"]);
+        var priority = CreateChoice("Your priority", ["Smoother competitive play", "Higher visual quality", "Balanced"]);
+        var output = new StackPanel { Margin = new Thickness(0, 14, 0, 0) };
+
+        var advise = new Button
+        {
+            Content = "Get local recommendations",
+            Background = (Brush)FindResource("AccentGradient"),
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Margin = new Thickness(0, 14, 0, 0)
+        };
+        advise.Click += (_, _) => RenderFpsAdvice(output, bottleneck, resolution, priority);
+
+        ShowDetail("AI FPS advisor",
+            "Choose what you observe in a game. Change one graphics setting at a time, then compare the same scene using the game's benchmark or an FPS overlay.",
+            note,
+            CreateChoiceRow(bottleneck, resolution, priority),
+            advise,
+            output);
+    }
+
+    private static ComboBox CreateChoice(string label, IEnumerable<string> choices)
+    {
+        var combo = new ComboBox
+        {
+            ItemsSource = choices,
+            SelectedIndex = 0,
+            MinWidth = 180,
+            Padding = new Thickness(8, 6, 8, 6),
+            Background = new SolidColorBrush(Color.FromRgb(27, 32, 44)),
+            Foreground = new SolidColorBrush(Color.FromRgb(243, 244, 248)),
+            BorderBrush = new SolidColorBrush(Color.FromRgb(55, 64, 82)),
+            Tag = label,
+            Margin = new Thickness(0, 0, 10, 10)
+        };
+        return combo;
+    }
+
+    private static StackPanel CreateChoiceRow(params ComboBox[] choices)
+    {
+        var row = new StackPanel();
+        foreach (var choice in choices)
+        {
+            row.Children.Add(new TextBlock
+            {
+                Text = (string)choice.Tag + "  ·",
+                FontSize = 11,
+                Foreground = new SolidColorBrush(Color.FromRgb(155, 163, 181)),
+                Margin = new Thickness(0, 6, 0, 4)
+            });
+            row.Children.Add(choice);
+        }
+
+        return row;
+    }
+
+    private static void RenderFpsAdvice(
+        Panel output,
+        ComboBox bottleneck,
+        ComboBox resolution,
+        ComboBox priority)
+    {
+        output.Children.Clear();
+        var selectedBottleneck = bottleneck.SelectedItem?.ToString() ?? "Not sure";
+        var selectedResolution = resolution.SelectedItem?.ToString() ?? "Other";
+        var selectedPriority = priority.SelectedItem?.ToString() ?? "Balanced";
+        var recommendations = new List<(string Title, string Body)>();
+
+        if (selectedBottleneck == "GPU is near full use")
+        {
+            recommendations.Add(("If GPU-limited",
+                $"At {selectedResolution}, test a modest render-scale reduction or lower one GPU-heavy option (such as ray tracing, shadows, or volumetrics). These settings mainly reduce GPU work; keep an eye on image quality."));
+        }
+        else if (selectedBottleneck == "CPU is near full use")
+        {
+            recommendations.Add(("If CPU-limited",
+                "Try reducing CPU-heavy options such as crowd density, simulation, or view distance. Close only background apps you recognize and do not need. Lowering texture quality often will not help a CPU bottleneck."));
+        }
+        else
+        {
+            recommendations.Add(("First identify the limit",
+                "Check GPU utilization and per-core CPU load during a repeatable scene. If GPU use stays near full, test a GPU-heavy setting; if one or more CPU cores are saturated while GPU use is lower, test a CPU-heavy setting. Avoid changing many options at once."));
+        }
+
+        if (selectedPriority == "Smoother competitive play")
+        {
+            recommendations.Add(("For smoother play",
+                "Prefer stable frame times over a fluctuating peak FPS. If the game supports it, test an FPS cap your PC can sustain near your display refresh rate. Check whether VRR (FreeSync/G-SYNC Compatible) is supported; V-Sync can reduce tearing but may add latency."));
+        }
+        else if (selectedPriority == "Higher visual quality")
+        {
+            recommendations.Add(("For visual quality",
+                "Keep native resolution as a baseline. If supported by the game and GPU, compare its built-in upscaling quality modes and change one option at a time; inspect for blur or artifacts as well as frame rate."));
+        }
+        else
+        {
+            recommendations.Add(("For a balanced profile",
+                "Keep native resolution initially, then adjust one costly graphics option at a time. Use built-in upscaling only if the game supports it and compare image quality and frame times."));
+        }
+
+        recommendations.Add(("Measure before and after",
+            "Use the same game scene or built-in benchmark for each comparison. Driver updates do not guarantee higher FPS; install them from your GPU or device maker only when appropriate."));
+
+        foreach (var recommendation in recommendations)
+        {
+            var card = new Border
+            {
+                CornerRadius = new CornerRadius(10),
+                Background = new SolidColorBrush(Color.FromRgb(27, 32, 44)),
+                Padding = new Thickness(14),
+                Margin = new Thickness(0, 0, 0, 9)
+            };
+            var content = new StackPanel();
+            content.Children.Add(new TextBlock
+            {
+                Text = recommendation.Title,
+                FontSize = 12,
+                FontWeight = FontWeights.SemiBold,
+                Foreground = (Brush)Application.Current.FindResource("TextPrimary")
+            });
+            content.Children.Add(new TextBlock
+            {
+                Text = recommendation.Body,
+                TextWrapping = TextWrapping.Wrap,
+                FontSize = 11,
+                LineHeight = 17,
+                Foreground = (Brush)Application.Current.FindResource("TextMuted"),
+                Margin = new Thickness(0, 5, 0, 0)
+            });
+            card.Child = content;
+            output.Children.Add(card);
+        }
+    }
+
+    private void Drivers_Click(object sender, RoutedEventArgs e)
+    {
+        var warning = new TextBlock
+        {
+            Text = "Nexus never downloads or installs drivers. Confirm your exact GPU and Windows version on the vendor site. For laptops or prebuilt PCs, the computer maker may provide a tested driver; MSI, ASUS, and Gigabyte pages require the exact product model.",
+            TextWrapping = TextWrapping.Wrap,
+            Foreground = new SolidColorBrush(Color.FromRgb(255, 200, 107)),
+            FontSize = 11,
+            LineHeight = 17,
+            Margin = new Thickness(0, 0, 0, 14)
+        };
+
+        ShowDetail("Official GPU drivers",
+            "Open the graphics-chip maker's official download page, or your PC/GPU board maker's official support page.",
+            warning,
+            CreateDriverButton("AMD Radeon · official downloads", "https://www.amd.com/en/support/download/drivers.html"),
+            CreateDriverButton("NVIDIA GeForce · official downloads", "https://www.nvidia.com/Download/index.aspx"),
+            CreateDriverButton("Intel Graphics · official downloads", "https://www.intel.com/content/www/us/en/download-center/home.html"),
+            new TextBlock
+            {
+                Text = "Board and computer manufacturers",
+                FontSize = 13,
+                FontWeight = FontWeights.SemiBold,
+                Foreground = (Brush)FindResource("TextPrimary"),
+                Margin = new Thickness(0, 16, 0, 8)
+            },
+            CreateDriverButton("MSI · official support & downloads", "https://www.msi.com/support/download"),
+            CreateDriverButton("ASUS · official support", "https://www.asus.com/support/"),
+            CreateDriverButton("Gigabyte · official support", "https://www.gigabyte.com/Support"));
+    }
+
+    private Button CreateDriverButton(string label, string url)
+    {
+        var button = new Button
+        {
+            Content = label + "  ↗",
+            Background = new SolidColorBrush(Color.FromRgb(36, 42, 55)),
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Margin = new Thickness(0, 0, 0, 8),
+            Tag = url
+        };
+        button.Click += (_, _) => StartUri(url);
+        return button;
+    }
+
     private void Mouse_Click(object sender, RoutedEventArgs e)
     {
         var nameBox = new TextBox { Style = (Style)FindResource("FieldBox"), Width = 190, Text = "Gaming" };

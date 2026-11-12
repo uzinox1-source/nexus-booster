@@ -7,6 +7,8 @@ A Windows 10/11 desktop tuning dashboard with opt-in, current-user Windows tweak
 - Seven Windows account-level settings with explicit confirmation, pre-change backups, and undo.
 - A current-user startup manager that can disable selected `Run` entries and restore their exact saved values.
 - Local mouse DPI profile storage (100–25,600 DPI); profiles are **not** pushed to a mouse because a device/vendor API is not connected.
+- An FPS advisor that offers transparent, rule-based suggestions from the user's selected bottleneck, resolution, and play-style; it does not connect to an AI service, scan games, or guarantee frame-rate gains.
+- Official driver/support links for AMD, NVIDIA, Intel, MSI, ASUS, and Gigabyte. Nexus opens vendor pages in the browser and never downloads or installs a driver.
 - A conservative debloat guide that opens Windows Installed apps rather than silently removing system components.
 - A locked overclocking panel. CPU/GPU controls stay unavailable until a verified vendor backend and safety telemetry are integrated. Nexus does not write firmware or low-level registers.
 - A dedicated test console project; all build and test outputs are directed to the ignored `artifacts/test-build/` folder.
@@ -31,4 +33,5 @@ The framework-dependent WPF executable is emitted under `artifacts/test-build/bi
 - Some settings take effect only after signing out or restarting a game; each tweak states its expected refresh behavior.
 - Debloating apps can remove functionality. The guide delegates removal to Windows Settings and leaves package selection to the user.
 - DPI values are presets only. Windows pointer speed is not hardware DPI.
+- Driver availability and compatibility depend on the exact GPU and computer model. For laptops and prebuilt systems, check the computer maker's support page as well as the GPU vendor.
 - Overclocking can cause instability or damage. Direct controls are deliberately disabled without supported APIs and appropriate sensor guardrails.

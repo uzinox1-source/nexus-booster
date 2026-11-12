@@ -26,6 +26,8 @@
                     <Button Style="{StaticResource NavButton}" Content="⌁   Debloat guide" Click="Debloat_Click"/>
                     <Button Style="{StaticResource NavButton}" Content="◉   Mouse profiles" Click="Mouse_Click"/>
                     <Button Style="{StaticResource NavButton}" Content="⌘   Overclocking" Click="Overclock_Click"/>
+                    <Button Style="{StaticResource NavButton}" Content="✧   AI FPS advisor" Click="FpsAdvisor_Click"/>
+                    <Button Style="{StaticResource NavButton}" Content="⇩   Official drivers" Click="Drivers_Click"/>
                 </StackPanel>
                 <Border DockPanel.Dock="Bottom" CornerRadius="14" Background="#171C27" Padding="14" Margin="0,14,0,0">
                     <StackPanel>
@@ -148,6 +150,23 @@
                             </Border>
                         </StackPanel>
                     </Grid>
+
+                    <UniformGrid Columns="2" Margin="0,16,0,0">
+                        <Border CornerRadius="16" Background="#151923" Padding="18" Margin="0,0,8,0">
+                            <StackPanel>
+                                <TextBlock Text="FPS ADVISOR" FontSize="10" FontWeight="Bold" Foreground="#43E7C3"/>
+                                <TextBlock Text="Get practical tips for your game and hardware profile." TextWrapping="Wrap" Foreground="#AAB2C2" FontSize="12" Margin="0,7,0,12"/>
+                                <Button Content="Open FPS advisor  →" HorizontalAlignment="Left" Background="#242A37" Click="FpsAdvisor_Click"/>
+                            </StackPanel>
+                        </Border>
+                        <Border CornerRadius="16" Background="#151923" Padding="18" Margin="8,0,0,0">
+                            <StackPanel>
+                                <TextBlock Text="GPU DRIVER LINKS" FontSize="10" FontWeight="Bold" Foreground="#8FB5FF"/>
+                                <TextBlock Text="Find official AMD, NVIDIA, Intel, and MSI support pages." TextWrapping="Wrap" Foreground="#AAB2C2" FontSize="12" Margin="0,7,0,12"/>
+                                <Button Content="Browse official drivers  →" HorizontalAlignment="Left" Background="#242A37" Click="Drivers_Click"/>
+                            </StackPanel>
+                        </Border>
+                    </UniformGrid>
 
                     <Border x:Name="DetailPanel" CornerRadius="18" Background="#151923" Padding="22" Margin="0,16,0,0" Visibility="Collapsed">
                         <StackPanel>
