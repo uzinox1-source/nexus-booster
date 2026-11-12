@@ -14,17 +14,18 @@ public partial class MainWindow : Window
     private readonly TweakService _tweaks;
     private readonly MouseProfileService _profiles;
     private readonly UserStartupService _startup;
+    private readonly string _dataDirectory;
     private StackPanel? _tweakBrowserList;
     private ComboBox? _tweakCategorySelector;
 
     public MainWindow()
     {
         InitializeComponent();
-        var dataDirectory = Path.Combine(
+        _dataDirectory = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "NexusBooster");
-        _tweaks = new TweakService(new RegistryUserSettingsStore(), Path.Combine(dataDirectory, "backups"));
-        _profiles = new MouseProfileService(Path.Combine(dataDirectory, "mouse-profiles.json"));
+        _tweaks = new TweakService(new RegistryUserSettingsStore(), Path.Combine(_dataDirectory, "backups"));
+        _profiles = new MouseProfileService(Path.Combine(_dataDirectory, "mouse-profiles.json"));
         _startup = new UserStartupService(_tweaks);
         Loaded += async (_, _) =>
         {
@@ -186,6 +187,210 @@ public partial class MainWindow : Window
     {
         PageTitle.Text = "Dashboard";
         DetailPanel.Visibility = Visibility.Collapsed;
+    }
+
+    private void Recovery_Click(object sender, RoutedEventArgs e)
+    {
+        var warning = new TextBlock
+        {
+            Text = "Restore Nexus-managed settings before deleting the executable. Recovery only uses saved backups under this Windows account; if a backup cannot be restored, it is kept and reported. Nexus installs no service or scheduled task.",
+            TextWrapping = TextWrapping.Wrap,
+            Foreground = new SolidColorBrush(Color.FromRgb(255, 200, 107)),
+            FontSize = 11,
+            LineHeight = 17,
+            Margin = new Thickness(0, 0, 0, 14)
+        };
+        var restore = new Button
+        {
+            Content = "Restore all Nexus-managed settings",
+            Background = (Brush)FindResource("AccentGradient"),
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Margin = new Thickness(0, 0, 0, 10)
+        };
+        restore.Click += RestoreAll_Click;
+
+        var clearProfiles = new Button
+        {
+            Content = "Back up & clear saved mouse profiles",
+            Background = new SolidColorBrush(Color.FromRgb(41, 47, 62)),
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Margin = new Thickness(0, 0, 0, 10)
+        };
+        clearProfiles.Click += ClearMouseProfiles_Click;
+
+        var restoreProfiles = new Button
+        {
+            Content = "Restore a mouse profile backup",
+            Background = new SolidColorBrush(Color.FromRgb(41, 47, 62)),
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Margin = new Thickness(0, 0, 0, 10)
+        };
+        restoreProfiles.Click += RestoreMouseProfiles_Click;
+
+        var openFolder = new Button
+        {
+            Content = "Open Nexus user-data folder",
+            Background = new SolidColorBrush(Color.FromRgb(41, 47, 62)),
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Margin = new Thickness(0, 0, 0, 14)
+        };
+        openFolder.Click += (_, _) => OpenDataFolder();
+
+        var license = new Button
+        {
+            Content = "View MIT license on GitHub  ↗",
+            Background = Brushes.Transparent,
+            Foreground = new SolidColorBrush(Color.FromRgb(187, 168, 255)),
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Padding = new Thickness(0, 4, 0, 4)
+        };
+        license.Click += (_, _) => StartUri("https://github.com/uzinox1-source/nexus-booster/blob/main/LICENSE");
+
+        ShowDetail(
+            "Recovery & removal",
+            "Nexus has no installer or uninstaller. It stores tweak backups and mouse profiles in your Local AppData folder. Restore changes first; then close the app and delete the Nexus Booster executable/folder yourself.",
+            warning,
+            restore,
+            clearProfiles,
+            restoreProfiles,
+            openFolder,
+            license);
+    }
+
+    private async void RestoreAll_Click(object sender, RoutedEventArgs e)
+    {
+        if (MessageBox.Show(
+                "Restore every setting with a saved Nexus backup, including disabled current-user startup entries?\n\n" +
+                "Successful backups will be removed after restoration. Any failed backup is kept so you can retry.",
+                "Restore all Nexus changes",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning) != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        try
+        {
+            var result = await _tweaks.RestoreAllAsync();
+            var summary = $"Restored {result.RestoredIds.Count} setting backup(s).";
+            if (result.Failures.Count == 0)
+            {
+                MessageBox.Show(
+                    summary + "\n\nNo Nexus registry backups remain.",
+                    "Recovery complete",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                StatusText.Text = "All backed-up Nexus settings were restored.";
+            }
+            else
+            {
+                var details = string.Join(
+                    Environment.NewLine,
+                    result.Failures.Select(failure => $"• {failure.BackupId}: {failure.Message}"));
+                MessageBox.Show(
+                    $"{summary}\n\n{result.Failures.Count} backup(s) could not be restored; those backups remain in the Nexus data folder:\n\n{details}",
+                    "Recovery incomplete",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+                StatusText.Text = "Some changes need attention; failed backups were kept.";
+            }
+
+            await RenderTweaksAsync();
+            RenderTweakCategory();
+        }
+        catch (Exception error)
+        {
+            MessageBox.Show(error.Message, "Could not restore Nexus changes", MessageBoxButton.OK, MessageBoxImage.Error);
+            StatusText.Text = "Recovery did not complete. Review the error before removing Nexus.";
+        }
+    }
+
+    private async void ClearMouseProfiles_Click(object sender, RoutedEventArgs e)
+    {
+        if (MessageBox.Show(
+                "Back up your saved DPI profile file and clear the active profiles from Nexus?\n\n" +
+                "The backup will remain in the recovery folder; this does not change any mouse hardware setting.",
+                "Back up and clear DPI profiles",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning) != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        try
+        {
+            var backup = await _profiles.BackupAndClearAsync(Path.Combine(_dataDirectory, "recovery"));
+            if (backup is null)
+            {
+                MessageBox.Show("No saved DPI profiles were found.", "Profiles unchanged", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else
+            {
+                await UpdateProfileCountAsync();
+                MessageBox.Show(
+                    $"Active mouse profiles were cleared. A copy was saved here:\n{backup}",
+                    "Profiles backed up",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                StatusText.Text = "Mouse profiles cleared; recovery copy retained.";
+            }
+        }
+        catch (Exception error)
+        {
+            MessageBox.Show(error.Message, "Could not clear mouse profiles", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private async void RestoreMouseProfiles_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFileDialog
+        {
+            Title = "Select a Nexus mouse profile backup",
+            Filter = "Nexus profile backup (*.json)|*.json",
+            InitialDirectory = Path.Combine(_dataDirectory, "recovery"),
+            CheckFileExists = true,
+            Multiselect = false
+        };
+        if (dialog.ShowDialog(this) != true)
+        {
+            return;
+        }
+
+        if (MessageBox.Show(
+                "Restore this saved DPI profile backup? It will replace the active local profile list. " +
+                "The selected backup file will remain unchanged.",
+                "Restore mouse profile backup",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning) != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        try
+        {
+            await _profiles.RestoreBackupAsync(dialog.FileName);
+            await UpdateProfileCountAsync();
+            StatusText.Text = "Mouse profiles restored from backup. They remain presets and are not applied to hardware.";
+            MessageBox.Show("The profile list was restored. The backup remains available.", "Profiles restored",
+                MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception error)
+        {
+            MessageBox.Show(error.Message, "Could not restore mouse profiles", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void OpenDataFolder()
+    {
+        try
+        {
+            Directory.CreateDirectory(_dataDirectory);
+            Process.Start(new ProcessStartInfo("explorer.exe", _dataDirectory) { UseShellExecute = true });
+        }
+        catch (Exception error)
+        {
+            MessageBox.Show(error.Message, "Could not open Nexus user data", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 
     private void Tweaks_Click(object sender, RoutedEventArgs e)

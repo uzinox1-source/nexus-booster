@@ -39,6 +39,12 @@ public sealed record SavedSetting(
     string ValueName,
     SettingValue? OriginalValue);
 
+public sealed record RestoreFailure(string BackupId, string Message);
+
+public sealed record RestoreAllResult(
+    IReadOnlyList<string> RestoredIds,
+    IReadOnlyList<RestoreFailure> Failures);
+
 public interface IUserSettingsStore
 {
     SettingValue? Read(string keyPath, string valueName);

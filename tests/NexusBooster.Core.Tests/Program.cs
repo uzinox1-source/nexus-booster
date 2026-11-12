@@ -8,7 +8,10 @@ var tests = new (string Name, Func<Task> Run)[]
     ("Failed apply rolls back every value", FailedApplyRollsBack),
     ("Reject duplicate apply", RejectDuplicateApply),
     ("Mouse profiles validate and replace by name", SaveMouseProfiles),
-    ("Catalog categories include warnings for moderate-risk changes", CatalogCategoriesAndWarnings)
+    ("Catalog categories include warnings for moderate-risk changes", CatalogCategoriesAndWarnings),
+    ("Restore all recovers valid settings and keeps failed backups", RestoreAllBackups),
+    ("Clear mouse profiles preserves a recovery copy", BackupAndClearMouseProfiles),
+    ("Restore mouse profiles from backup keeps the backup", RestoreMouseProfiles)
 };
 
 var failures = new List<string>();
@@ -128,6 +131,62 @@ static Task CatalogCategoriesAndWarnings()
     Assert.True(TweakCatalog.All.Any(tweak => tweak.Category == TweakCategories.Ui));
     Assert.False(TweakCatalog.All.Any(tweak => tweak.Values.Any(value => value.KeyPath.StartsWith("Software\\Policies\\", StringComparison.Ordinal))));
     return Task.CompletedTask;
+}
+
+static async Task RestoreAllBackups()
+{
+    using var temp = new TemporaryDirectory();
+    var store = new MemorySettingsStore();
+    store.Write("Software\\Test", "Value", new SettingValue(SettingKind.String, "before"));
+    var service = new TweakService(store, temp.Path);
+    await service.ApplyAsync(new TweakDefinition(
+        "first",
+        "First",
+        "description",
+        [new TweakValue("Software\\Test", "Value", new SettingValue(SettingKind.String, "after"))],
+        "restart"));
+
+    Directory.CreateDirectory(temp.Path);
+    await File.WriteAllTextAsync(Path.Combine(temp.Path, "broken.json"), "{not json");
+    var result = await service.RestoreAllAsync();
+
+    Assert.Equal(1, result.RestoredIds.Count);
+    Assert.Equal("first", result.RestoredIds[0]);
+    Assert.Equal("before", store.Read("Software\\Test", "Value")?.Data);
+    Assert.Equal(1, result.Failures.Count);
+    Assert.Equal("broken", result.Failures[0].BackupId);
+    Assert.True(File.Exists(Path.Combine(temp.Path, "broken.json")));
+}
+
+static async Task BackupAndClearMouseProfiles()
+{
+    using var temp = new TemporaryDirectory();
+    var profilePath = Path.Combine(temp.Path, "mouse-profiles.json");
+    var service = new MouseProfileService(profilePath);
+    await service.SaveAsync(new MouseDpiProfile("Gaming", 800));
+
+    var backup = await service.BackupAndClearAsync(Path.Combine(temp.Path, "recovery"));
+
+    Assert.True(backup is not null);
+    Assert.True(File.Exists(backup!));
+    Assert.Equal(0, (await service.ReadAsync()).Count);
+    var recovered = await File.ReadAllTextAsync(backup!);
+    Assert.True(recovered.Contains("Gaming", StringComparison.Ordinal));
+}
+
+static async Task RestoreMouseProfiles()
+{
+    using var temp = new TemporaryDirectory();
+    var file = Path.Combine(temp.Path, "mouse-profiles.json");
+    var service = new MouseProfileService(file);
+    await service.SaveAsync(new MouseDpiProfile("Gaming", 800));
+    var backup = await service.BackupAndClearAsync(Path.Combine(temp.Path, "recovery"))
+        ?? throw new InvalidOperationException("Expected a profile backup.");
+
+    await service.RestoreBackupAsync(backup);
+
+    Assert.Equal(800, (await service.ReadAsync()).Single().Dpi);
+    Assert.True(File.Exists(backup));
 }
 
 sealed class MemorySettingsStore : IUserSettingsStore

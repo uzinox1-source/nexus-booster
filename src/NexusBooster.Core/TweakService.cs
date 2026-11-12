@@ -28,6 +28,41 @@ public sealed class TweakService(IUserSettingsStore settings, string backupDirec
             : [];
     }
 
+    public IReadOnlyList<string> GetAllAppliedIds() =>
+        Directory.Exists(backupDirectory)
+            ? Directory.EnumerateFiles(backupDirectory, "*.json")
+                .Select(Path.GetFileNameWithoutExtension)
+                .Where(id => id is not null)
+                .Select(id => id!)
+                .OrderBy(id => id, StringComparer.Ordinal)
+                .ToArray()
+            : [];
+
+    public async Task<RestoreAllResult> RestoreAllAsync(CancellationToken cancellationToken = default)
+    {
+        var restored = new List<string>();
+        var failures = new List<RestoreFailure>();
+        foreach (var id in GetAllAppliedIds())
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            try
+            {
+                await RestoreAsync(id, cancellationToken);
+                restored.Add(id);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception error)
+            {
+                failures.Add(new RestoreFailure(id, error.Message));
+            }
+        }
+
+        return new RestoreAllResult(restored, failures);
+    }
+
     public async Task<IReadOnlyList<SavedSetting>> ReadSavedSettingsAsync(
         string tweakId,
         CancellationToken cancellationToken = default)
