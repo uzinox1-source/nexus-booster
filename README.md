@@ -15,7 +15,7 @@ Nexus Booster is free and open source under the [MIT License](LICENSE). Read the
 - Official driver/support links for AMD, NVIDIA, Intel, MSI, ASUS, and Gigabyte. Nexus opens vendor pages in the browser and never downloads or installs a driver.
 - A conservative debloat guide that opens Windows Installed apps rather than silently removing system components.
 - No overclocking controls are included; Nexus does not write firmware or low-level registers.
-- A first-launch “AS IS” notice must be accepted and is recorded under `%LOCALAPPDATA%\NexusBooster\`.
+- A first-launch “AS IS” notice must be accepted and is recorded under `%LOCALAPPDATA%\NexusBooster\`. Startup failures after the .NET app starts are reported and logged locally to `%LOCALAPPDATA%\NexusBooster\startup-error.log`; entries contain only the time, startup stage, exception type, and HRESULT.
 - Recovery tools restore Nexus-managed registry backups and can back up then clear local mouse DPI profiles. Failed restores are reported and their backup files are retained; profile backup files can be selected and restored later.
 - Nexus installs no Windows service or scheduled task and currently has no installer/uninstaller.
 - A dedicated test console project; all build and test outputs are directed to the ignored `artifacts/test-build/` folder.
@@ -33,7 +33,7 @@ dotnet publish .\src\NexusBooster.App\NexusBooster.App.csproj -c Release -r win-
 
 The framework-dependent WPF executable is emitted under `artifacts/test-build/bin/NexusBooster.App/`. The self-contained testable executable is published to `artifacts/test-build/publish/win-x64/NexusBooster.App.exe`. The test executable and intermediate build products are also kept under `artifacts/test-build/`, which is ignored by Git.
 
-The self-contained executable targets 64-bit Windows 10/11 and does not require the .NET runtime to be preinstalled. No driver, helper service, or hardware overclocking component is bundled.
+The self-contained single-file executable targets 64-bit Windows 10/11 and does not require the .NET runtime to be preinstalled. The app and its runtime dependencies are bundled, so the app does not require a separate `NexusBooster.App.dll` next to the executable. Extract the complete release ZIP before running the EXE. No driver, helper service, or hardware overclocking component is bundled.
 
 ## Release verification
 

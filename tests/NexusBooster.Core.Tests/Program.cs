@@ -11,7 +11,9 @@ var tests = new (string Name, Func<Task> Run)[]
     ("Catalog categories include warnings for moderate-risk changes", CatalogCategoriesAndWarnings),
     ("Restore all recovers valid settings and keeps failed backups", RestoreAllBackups),
     ("Clear mouse profiles preserves a recovery copy", BackupAndClearMouseProfiles),
-    ("Restore mouse profiles from backup keeps the backup", RestoreMouseProfiles)
+    ("Restore mouse profiles from backup keeps the backup", RestoreMouseProfiles),
+    ("Declining first-launch notice does not save consent", DeclineFirstLaunchConsent),
+    ("Accepting first-launch notice persists across launches", AcceptFirstLaunchConsent)
 };
 
 var failures = new List<string>();
@@ -187,6 +189,37 @@ static async Task RestoreMouseProfiles()
 
     Assert.Equal(800, (await service.ReadAsync()).Single().Dpi);
     Assert.True(File.Exists(backup));
+}
+
+static Task DeclineFirstLaunchConsent()
+{
+    using var temp = new TemporaryDirectory();
+    var consent = new FirstLaunchConsent(Path.Combine(temp.Path, "consent.txt"));
+    var prompted = false;
+
+    var accepted = consent.EnsureAccepted(() =>
+    {
+        prompted = true;
+        return false;
+    });
+
+    Assert.True(prompted);
+    Assert.False(accepted);
+    Assert.False(File.Exists(Path.Combine(temp.Path, "consent.txt")));
+    return Task.CompletedTask;
+}
+
+static Task AcceptFirstLaunchConsent()
+{
+    using var temp = new TemporaryDirectory();
+    var path = Path.Combine(temp.Path, "consent.txt");
+    var consent = new FirstLaunchConsent(path);
+
+    Assert.True(consent.EnsureAccepted(() => true));
+    Assert.True(File.Exists(path));
+    Assert.True(new FirstLaunchConsent(path).EnsureAccepted(
+        () => throw new InvalidOperationException("An accepted notice must not be shown again.")));
+    return Task.CompletedTask;
 }
 
 sealed class MemorySettingsStore : IUserSettingsStore
