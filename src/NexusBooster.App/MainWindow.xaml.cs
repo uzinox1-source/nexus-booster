@@ -440,8 +440,8 @@ public partial class MainWindow : Window
         _tweakBrowserList = new StackPanel();
         _tweakCategorySelector.SelectionChanged += (_, _) => RenderTweakCategory();
         ShowDetail(
-            "Tweak categories",
-            "Browse practical settings by topic. The FPS and Ping categories do not promise a performance gain; measure changes in the games and network you actually use.",
+            "PC Tuner",
+            "Review and apply supported account-level settings, or read the guidance for advanced changes Nexus deliberately leaves under your control.",
             warning,
             _tweakCategorySelector,
             _tweakBrowserList);
@@ -523,28 +523,46 @@ public partial class MainWindow : Window
             _tweakBrowserList.Children.Add(card);
         }
 
-        if (definitions.Length > 0)
+        foreach (var guidance in TweakGuidanceCatalog.All.Where(item =>
+                     string.Equals(item.Category, category, StringComparison.Ordinal)))
         {
-            return;
+            var guidanceCard = new Border
+            {
+                CornerRadius = new CornerRadius(11),
+                Background = new SolidColorBrush(Color.FromRgb(37, 34, 29)),
+                BorderBrush = new SolidColorBrush(Color.FromRgb(104, 82, 45)),
+                BorderThickness = new Thickness(1),
+                Padding = new Thickness(13),
+                Margin = new Thickness(0, 0, 0, 9)
+            };
+            var guidanceContent = new StackPanel();
+            guidanceContent.Children.Add(new TextBlock
+            {
+                Text = "ADVANCED GUIDANCE · NOT APPLIED BY NEXUS",
+                FontWeight = FontWeights.Bold,
+                FontSize = 9,
+                Foreground = new SolidColorBrush(Color.FromRgb(255, 200, 107))
+            });
+            guidanceContent.Children.Add(new TextBlock
+            {
+                Text = guidance.Title,
+                FontWeight = FontWeights.SemiBold,
+                FontSize = 12.5,
+                Foreground = (Brush)FindResource("TextPrimary"),
+                Margin = new Thickness(0, 6, 0, 0)
+            });
+            guidanceContent.Children.Add(new TextBlock
+            {
+                Text = guidance.Description + "\n\n" + guidance.Caution,
+                TextWrapping = TextWrapping.Wrap,
+                FontSize = 10.5,
+                LineHeight = 16,
+                Foreground = (Brush)FindResource("TextMuted"),
+                Margin = new Thickness(0, 4, 0, 0)
+            });
+            guidanceCard.Child = guidanceContent;
+            _tweakBrowserList.Children.Add(guidanceCard);
         }
-
-        var guidance = category switch
-        {
-            TweakCategories.Ping => "Ping is mainly determined by your ISP route, game server, congestion, and Wi-Fi quality. Registry “ping fixes” cannot shorten that route. Compare the same server and time of day, test Ethernet versus Wi-Fi, pause large downloads, and check for packet loss before changing settings.",
-            TweakCategories.Power => "USB selective suspend and PCIe Link State Power Management trade power use and heat for lower idle consumption. Results vary by device; changing them globally can reduce battery life or affect sleep/wake behavior. Review Windows Settings or your PC/motherboard maker's guidance manually. Nexus does not change hidden power settings, device power policies, or disable hardware.",
-            TweakCategories.Privacy => "Keep Windows Security, Defender, Firewall, and Windows Update enabled. Avoid blocking vendor or Microsoft domains through the hosts file or disabling diagnostic/update services; those changes can break updates, support, or security. This section is guidance-only; Nexus does not change policy or security settings.",
-            TweakCategories.Maintenance => "Use Windows Storage settings to review temporary files before removing them. Nexus will not purge Prefetch, shader caches, update downloads, or WinSxS; indiscriminate cleanup can slow apps, remove rollback data, or damage servicing. DISM/SFC repair should be run only for a diagnosed Windows problem.",
-            _ => "This topic is guidance-only because the commonly shared tweaks can impair networking, hardware power behavior, security, or Windows servicing."
-        };
-        _tweakBrowserList.Children.Add(new TextBlock
-        {
-            Text = guidance,
-            TextWrapping = TextWrapping.Wrap,
-            Foreground = (Brush)FindResource("TextMuted"),
-            FontSize = 11,
-            LineHeight = 18,
-            Margin = new Thickness(0, 0, 0, 12)
-        });
 
         if (category == TweakCategories.Power)
         {

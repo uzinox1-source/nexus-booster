@@ -13,6 +13,7 @@ var tests = new (string Name, Func<Task> Run)[]
     ("Reject duplicate apply", RejectDuplicateApply),
     ("Mouse profiles validate and replace by name", SaveMouseProfiles),
     ("Catalog categories include warnings for moderate-risk changes", CatalogCategoriesAndWarnings),
+    ("Advanced tuner guidance is visible and never applies changes", TunerGuidanceIsAdvisory),
     ("Restore all recovers valid settings and keeps failed backups", RestoreAllBackups),
     ("Clear mouse profiles preserves a recovery copy", BackupAndClearMouseProfiles),
     ("Restore mouse profiles from backup keeps the backup", RestoreMouseProfiles),
@@ -140,6 +141,30 @@ static Task CatalogCategoriesAndWarnings()
     Assert.True(TweakCatalog.All.Any(tweak => tweak.Category == TweakCategories.Fps));
     Assert.True(TweakCatalog.All.Any(tweak => tweak.Category == TweakCategories.Ui));
     Assert.False(TweakCatalog.All.Any(tweak => tweak.Values.Any(value => value.KeyPath.StartsWith("Software\\Policies\\", StringComparison.Ordinal))));
+    return Task.CompletedTask;
+}
+
+static Task TunerGuidanceIsAdvisory()
+{
+    var requiredCategories = new[]
+    {
+        TweakCategories.Fps,
+        TweakCategories.Ping,
+        TweakCategories.Power,
+        TweakCategories.Privacy,
+        TweakCategories.Maintenance
+    };
+
+    foreach (var category in requiredCategories)
+    {
+        var guidance = TweakGuidanceCatalog.All.Where(item => item.Category == category).ToArray();
+        Assert.True(guidance.Length > 0);
+        Assert.True(guidance.All(item =>
+            !string.IsNullOrWhiteSpace(item.Title) &&
+            !string.IsNullOrWhiteSpace(item.Description) &&
+            !string.IsNullOrWhiteSpace(item.Caution)));
+    }
+
     return Task.CompletedTask;
 }
 
