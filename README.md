@@ -1,6 +1,6 @@
 # Nexus Booster
 
-A Windows 10/11 desktop tuning dashboard with opt-in, current-user Windows tweaks and saved mouse DPI presets. The premium gradient interface enters with a smooth fade/slide animation; actions remain transparent and reversible where the OS settings support rollback.
+A Windows 10/11 desktop PC tuner with opt-in, current-user Windows tweaks and saved mouse DPI presets, plus a separate Focus module. Open **PC Tuner** from the app's left navigation to browse supported tweaks and advanced guidance.
 
 Nexus Booster is free and open source under the [MIT License](LICENSE). Read the complete license and first-launch notice before using the app.
 
@@ -8,6 +8,7 @@ Nexus Booster is free and open source under the [MIT License](LICENSE). Read the
 
 - Seven Windows account-level settings grouped into FPS & Gaming and UI & Responsiveness, with explicit confirmation, pre-change backups, and undo.
 - A categorized tweak browser with Ping & Network, Power/USB, Privacy/Security, UI, FPS/Gaming, Mouse/Input, and Maintenance guidance. Ping guidance focuses on measuring the actual route/server; hardware power, security, and servicing changes that can be disruptive are guidance-only.
+- Advanced GPU/registry, hosts-file, power, networking, security, and cleanup topics are visibly labeled as guidance only; the app does not silently apply these higher-risk changes.
 - Moderate-risk settings show a specific warning followed by a separate apply confirmation.
 - A current-user startup manager that can disable selected `Run` entries and restore their exact saved values.
 - Local mouse DPI profile storage (100–25,600 DPI); profiles are **not** pushed to a mouse because a device/vendor API is not connected.
@@ -49,7 +50,7 @@ dotnet publish .\src\NexusBooster.App\NexusBooster.App.csproj -c Release -r win-
 
 The framework-dependent WPF executable is emitted under `artifacts/test-build/bin/NexusBooster.App/`. The self-contained testable executable is published to `artifacts/test-build/publish/win-x64/NexusBooster.App.exe`. The test executable and intermediate build products are also kept under `artifacts/test-build/`, which is ignored by Git.
 
-The self-contained single-file executable targets 64-bit Windows 10/11 and does not require the .NET runtime to be preinstalled. The app and its runtime dependencies are bundled, so the app does not require a separate `NexusBooster.App.dll` next to the executable. Extract the complete release ZIP before running the EXE. No driver, helper service, or hardware overclocking component is bundled.
+The self-contained single-file executable targets 64-bit Windows 10/11 and does not require the .NET runtime to be preinstalled. The app and its runtime dependencies are bundled, so the app does not require a separate `NexusBooster.App.dll` next to the executable. The release ZIP also includes this README so the included PC Tuner and separate Focus module are clear before launch. Extract the complete release ZIP before running the EXE. No driver, helper service, or hardware overclocking component is bundled.
 
 ## Release verification
 

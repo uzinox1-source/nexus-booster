@@ -23,7 +23,7 @@
                     <TextBlock Text="WORKSPACE" FontSize="10" Foreground="#6F788A" FontWeight="Bold" Margin="10,0,0,8"/>
                     <Button Style="{StaticResource NavButton}" Content="◈   Dashboard" Click="Dashboard_Click"/>
                     <Button Style="{StaticResource NavButton}" Content="◎   Focus module" Click="FocusModule_Click"/>
-                    <Button Style="{StaticResource NavButton}" Content="✦   Tweak categories" Click="TweakBrowser_Click"/>
+                    <Button Style="{StaticResource NavButton}" Content="✦   PC Tuner" Click="TweakBrowser_Click"/>
                     <Button Style="{StaticResource NavButton}" Content="⌁   Debloat guide" Click="Debloat_Click"/>
                     <Button Style="{StaticResource NavButton}" Content="◉   Mouse profiles" Click="Mouse_Click"/>
                     <Button Style="{StaticResource NavButton}" Content="✧   AI FPS advisor" Click="FpsAdvisor_Click"/>
@@ -78,7 +78,7 @@
                                 </Border>
                                 <TextBlock Text="Your rig,&#10;in tune." FontSize="36" FontWeight="Bold" LineHeight="42" Margin="0,15,0,7"/>
                                 <TextBlock Text="Small, transparent changes. Always on your terms." Foreground="#B7C0D0" FontSize="14"/>
-                                <Button Content="Explore safe tweaks  →" Background="{StaticResource AccentGradient}" HorizontalAlignment="Left" Margin="0,21,0,0" Click="Tweaks_Click"/>
+                                <Button Content="Open PC Tuner  →" Background="{StaticResource AccentGradient}" HorizontalAlignment="Left" Margin="0,21,0,0" Click="Tweaks_Click"/>
                             </StackPanel>
                             <Grid Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Width="170" Height="170">
                                 <Ellipse Fill="#278B5CF6" Width="170" Height="170"/>
@@ -124,7 +124,7 @@
                                 <DockPanel Margin="0,0,0,16">
                                     <Button DockPanel.Dock="Right" Content="View all  →" Background="Transparent" Foreground="#BBA8FF" Padding="6,4" Click="Tweaks_Click"/>
                                     <StackPanel>
-                                        <TextBlock Text="Quick tuning" FontSize="18" FontWeight="Bold"/>
+                                        <TextBlock Text="PC Tuner · Quick changes" FontSize="18" FontWeight="Bold"/>
                                         <TextBlock Text="Reversible, account-level Windows settings" FontSize="11" Foreground="#929AAC" Margin="0,4,0,0"/>
                                     </StackPanel>
                                 </DockPanel>

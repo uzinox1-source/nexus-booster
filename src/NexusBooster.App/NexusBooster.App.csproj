@@ -14,4 +14,12 @@
     <ProjectReference Include="..\NexusBooster.Core\NexusBooster.Core.csproj" />
     <ProjectReference Include="..\NexusBooster.Focus\NexusBooster.Focus.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\..\README.md">
+      <Link>README.md</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+  </ItemGroup>
 </Project>
