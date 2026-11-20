@@ -6,6 +6,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using Microsoft.Win32;
 using NexusBooster.Core;
+using NexusBooster.Focus;
 
 namespace NexusBooster.App;
 
@@ -187,6 +188,12 @@ public partial class MainWindow : Window
     {
         PageTitle.Text = "Dashboard";
         DetailPanel.Visibility = Visibility.Collapsed;
+    }
+
+    private void FocusModule_Click(object sender, RoutedEventArgs e)
+    {
+        var focusWindow = new FocusModuleWindow { Owner = this };
+        focusWindow.ShowDialog();
     }
 
     private void Recovery_Click(object sender, RoutedEventArgs e)

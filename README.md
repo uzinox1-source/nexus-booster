@@ -20,6 +20,22 @@ Nexus Booster is free and open source under the [MIT License](LICENSE). Read the
 - Nexus installs no Windows service or scheduled task and currently has no installer/uninstaller.
 - A dedicated test console project; all build and test outputs are directed to the ignored `artifacts/test-build/` folder.
 
+## Focus Module
+
+The **Focus module** is a separate, optional window; the existing tuning dashboard remains unchanged. It provides one-line task entry, 25-minute focus and Sunday-only 90-minute boss sessions, an idle pause based on Windows' last-input timestamp, a local plain-text scratchpad, progress totals, and an IRL quest. A block is recorded only after its timer completes and the user submits work that receives a critique PASS. Missing a focus day preserves existing totals and requires a 25-minute recovery block before starting another block.
+
+Critique supports Ruthless Code Auditor, Logic & Flaw Hunter, Bloat Cutter (which requires a `Cut: NN%` finding), and Goal Alignment Check. It has no chat/reply field and displays at most five findings. It requires the user to install and start [Ollama](https://ollama.com/) locally, then install the fixed local model:
+
+```powershell
+ollama pull qwen2.5:1.5b
+```
+
+The module sends critique requests only to `http://127.0.0.1:11434`; it does not call an AI API or automatically download a model. Model responses are not guaranteed to be correct. The in-app `Ctrl+Shift+C` shortcut critiques the work field only while the Focus module is focused; it does not read the clipboard or capture selections from other apps. Progress and scratchpad files stay under `%LOCALAPPDATA%\NexusBooster\FocusModule\`.
+
+The browser helper is a separate, optional Manifest V3 extension in `src/NexusBooster.Focus/BrowserExtension`. Review its files and instructions, then install it manually into each supported Chromium-based browser. It blocks selected distraction paths and removes YouTube home/watch recommendations; it does not cover every browser or every site. Its IRL check-ins are self-reported, and browser activity is not sent to the app.
+
+**System-integration limits:** The Focus module does not install a system-wide proxy, intercept HTTPS, modify the hosts file, terminate processes, minimize or lock browsers, or enforce access to other apps. It does not automatically change Windows color filters; the grayscale button opens Windows accessibility settings for a user-controlled change. Closing the module does not lock the PC, and quest completion is tracked locally rather than enforced outside Nexus.
+
 ## Build and test
 
 Install the .NET 8 SDK on Windows, then run from the repository root:

@@ -12,5 +12,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\NexusBooster.Core\NexusBooster.Core.csproj" />
+    <ProjectReference Include="..\NexusBooster.Focus\NexusBooster.Focus.csproj" />
   </ItemGroup>
 </Project>
