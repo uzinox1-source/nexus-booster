@@ -1,0 +1,47 @@
+{
+  "manifest_version": 3,
+  "name": "Nexus Focus Feed Blocker",
+  "version": "1.0.0",
+  "description": "Blocks selected short-form paths and removes YouTube feed recommendations locally.",
+  "permissions": [
+    "declarativeNetRequest"
+  ],
+  "host_permissions": [
+    "*://*.youtube.com/*",
+    "*://youtube.com/*",
+    "*://*.instagram.com/*",
+    "*://instagram.com/*",
+    "*://*.facebook.com/*",
+    "*://facebook.com/*",
+    "*://*.reddit.com/*",
+    "*://reddit.com/*"
+  ],
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "focus_paths",
+        "enabled": true,
+        "path": "rules.json"
+      }
+    ]
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.youtube.com/*",
+        "*://youtube.com/*",
+        "*://*.instagram.com/*",
+        "*://instagram.com/*",
+        "*://*.facebook.com/*",
+        "*://facebook.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "Nexus Focus Feed Blocker"
+  }
+}

@@ -7,8 +7,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\NexusBooster.Core\NexusBooster.Core.csproj" />
+    <ProjectReference Include="..\NexusBooster.Focus\NexusBooster.Focus.csproj" />
   </ItemGroup>
 </Project>

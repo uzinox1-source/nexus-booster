@@ -1,4 +1,8 @@
+using System.Net;
+using System.Text;
+using System.Text.Json;
 using NexusBooster.Core;
+using NexusBooster.Core.Focus;
 
 var tests = new (string Name, Func<Task> Run)[]
 {
@@ -11,7 +15,13 @@ var tests = new (string Name, Func<Task> Run)[]
     ("Catalog categories include warnings for moderate-risk changes", CatalogCategoriesAndWarnings),
     ("Restore all recovers valid settings and keeps failed backups", RestoreAllBackups),
     ("Clear mouse profiles preserves a recovery copy", BackupAndClearMouseProfiles),
-    ("Restore mouse profiles from backup keeps the backup", RestoreMouseProfiles)
+    ("Restore mouse profiles from backup keeps the backup", RestoreMouseProfiles),
+    ("Declining first-launch notice does not save consent", DeclineFirstLaunchConsent),
+    ("Accepting first-launch notice persists across launches", AcceptFirstLaunchConsent),
+    ("Focus quest requires both a passed block and an IRL check-in", FocusQuestRequirements),
+    ("Missed focus day starts a recovery block without erasing progress", FocusRecoveryPreservesProgress),
+    ("Critique parser enforces PASS or FAIL and five findings maximum", CritiqueParserLimits),
+    ("Critique request stays on the fixed local Ollama endpoint", CritiqueStaysLocal)
 };
 
 var failures = new List<string>();
@@ -189,6 +199,109 @@ static async Task RestoreMouseProfiles()
     Assert.True(File.Exists(backup));
 }
 
+static Task DeclineFirstLaunchConsent()
+{
+    using var temp = new TemporaryDirectory();
+    var consent = new FirstLaunchConsent(Path.Combine(temp.Path, "consent.txt"));
+    var prompted = false;
+
+    var accepted = consent.EnsureAccepted(() =>
+    {
+        prompted = true;
+        return false;
+    });
+
+    Assert.True(prompted);
+    Assert.False(accepted);
+    Assert.False(File.Exists(Path.Combine(temp.Path, "consent.txt")));
+    return Task.CompletedTask;
+}
+
+static Task AcceptFirstLaunchConsent()
+{
+    using var temp = new TemporaryDirectory();
+    var path = Path.Combine(temp.Path, "consent.txt");
+    var consent = new FirstLaunchConsent(path);
+
+    Assert.True(consent.EnsureAccepted(() => true));
+    Assert.True(File.Exists(path));
+    Assert.True(new FirstLaunchConsent(path).EnsureAccepted(
+        () => throw new InvalidOperationException("An accepted notice must not be shown again.")));
+    return Task.CompletedTask;
+}
+
+static async Task FocusQuestRequirements()
+{
+    using var temp = new TemporaryDirectory();
+    var store = new FocusProgressStore(Path.Combine(temp.Path, "focus.json"));
+    var today = new DateOnly(2026, 11, 20);
+
+    await store.RecordReadingAsync(15, today);
+    await store.RecordBodyEffortAsync(BodyEffort.PushUps, 20, today);
+    Assert.False((await store.ReadAsync(today)).IsQuestComplete);
+
+    var progress = await store.RecordFocusBlockAsync(25, isBoss: false, isRecovery: false, today);
+    Assert.True(progress.IsQuestComplete);
+    Assert.Equal(25, progress.TotalFocusMinutes);
+    Assert.Equal(15, progress.IntellectMinutes);
+    Assert.Equal(20, progress.PushUpReps);
+}
+
+static async Task FocusRecoveryPreservesProgress()
+{
+    using var temp = new TemporaryDirectory();
+    var store = new FocusProgressStore(Path.Combine(temp.Path, "focus.json"));
+    var monday = new DateOnly(2026, 11, 16);
+    await store.RecordFocusBlockAsync(25, isBoss: false, isRecovery: false, monday);
+
+    var missedDay = await store.ReadAsync(monday.AddDays(2));
+    Assert.True(missedDay.RecoveryRequired);
+    Assert.Equal(25, missedDay.TotalFocusMinutes);
+    await Assert.ThrowsAsync<InvalidOperationException>(() =>
+        store.RecordFocusBlockAsync(25, isBoss: false, isRecovery: false, monday.AddDays(2)));
+
+    var recovered = await store.RecordFocusBlockAsync(25, isBoss: false, isRecovery: true, monday.AddDays(2));
+    Assert.False(recovered.RecoveryRequired);
+    Assert.Equal(50, recovered.TotalFocusMinutes);
+    Assert.Equal(2, recovered.FocusBlocks);
+}
+
+static Task CritiqueParserLimits()
+{
+    var response = """
+        {"verdict":"PASS","bullets":["one","two","three","four","five","six"]}
+        """;
+    var critique = LocalCritiqueService.ParseFeedback(response);
+    Assert.True(critique.Passed);
+    Assert.Equal(5, critique.Bullets.Count);
+
+    var failure = LocalCritiqueService.ParseFeedback("""{"verdict":"FAIL","bullets":["Fix the missing case."]}""");
+    Assert.False(failure.Passed);
+    var bloat = LocalCritiqueService.ParseFeedback(
+        """{"verdict":"FAIL","bullets":["Cut: 35%"]}""",
+        requireCutPercent: true);
+    Assert.False(bloat.Passed);
+    Assert.Throws<InvalidDataException>(() =>
+        LocalCritiqueService.ParseFeedback("""{"verdict":"FAIL","bullets":["Cut 35 percent"]}""", requireCutPercent: true));
+    Assert.Throws<InvalidDataException>(() =>
+        LocalCritiqueService.ParseFeedback("""{"verdict":"MAYBE","bullets":["unclear"]}"""));
+    return Task.CompletedTask;
+}
+
+static async Task CritiqueStaysLocal()
+{
+    var handler = new CaptureCritiqueHandler();
+    using var service = new LocalCritiqueService(handler);
+    var result = await service.CritiqueAsync(CritiqueMode.CodeAuditor, "Fix the parser", "Check empty input.");
+
+    Assert.True(result.Passed);
+    Assert.Equal("127.0.0.1", handler.RequestUri?.Host);
+    Assert.Equal("/api/generate", handler.RequestUri?.AbsolutePath);
+    using var payload = JsonDocument.Parse(handler.RequestBody!);
+    Assert.Equal(LocalCritiqueService.DefaultModel, payload.RootElement.GetProperty("model").GetString());
+    Assert.True(payload.RootElement.GetProperty("prompt").GetString()!.Contains("Fix the parser", StringComparison.Ordinal));
+}
+
 sealed class MemorySettingsStore : IUserSettingsStore
 {
     private readonly Dictionary<(string Key, string Name), SettingValue> _values = [];
@@ -201,6 +314,26 @@ sealed class MemorySettingsStore : IUserSettingsStore
 
     public void Delete(string keyPath, string valueName) =>
         _values.Remove((keyPath, valueName));
+}
+
+sealed class CaptureCritiqueHandler : HttpMessageHandler
+{
+    public Uri? RequestUri { get; private set; }
+    public string? RequestBody { get; private set; }
+
+    protected override async Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request,
+        CancellationToken cancellationToken)
+    {
+        RequestUri = request.RequestUri;
+        RequestBody = await request.Content!.ReadAsStringAsync(cancellationToken);
+        const string critique = """{"verdict":"PASS","bullets":["No blocking issue."]}""";
+        var response = JsonSerializer.Serialize(new { response = critique });
+        return new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(response, Encoding.UTF8, "application/json")
+        };
+    }
 }
 
 sealed class FailOnceSettingsStore(string valueName) : IUserSettingsStore
@@ -262,6 +395,20 @@ static class Assert
         {
             throw new InvalidOperationException($"Expected {expected}, got {actual}.");
         }
+    }
+
+    public static void Throws<T>(Action action) where T : Exception
+    {
+        try
+        {
+            action();
+        }
+        catch (T)
+        {
+            return;
+        }
+
+        throw new InvalidOperationException($"Expected {typeof(T).Name}.");
     }
 
     public static async Task ThrowsAsync<T>(Func<Task> action) where T : Exception
