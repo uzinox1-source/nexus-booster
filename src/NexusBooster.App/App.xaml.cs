@@ -35,21 +35,21 @@ public partial class App : Application
         }
         catch (Exception error)
         {
-            ShowFailure($"Nexus Booster could not start while {stage}.", stage, error);
+            ShowFailure($"Nexus Safe Tweaks could not start while {stage}.", stage, error);
             Shutdown(-1);
         }
     }
 
     private static bool ShowConsentNotice() =>
         MessageBox.Show(
-            "NEXUS BOOSTER — AS-IS NOTICE\n\n" +
+            "NEXUS SAFE TWEAKS — AS-IS NOTICE\n\n" +
             "This free, open-source utility is provided “AS IS”, without warranty of any kind. " +
             "Windows tweaks can change how your account behaves. Review each warning, keep a backup, " +
             "and apply changes only if you understand them. You are responsible for changes you choose to make.\n\n" +
-            "Nexus Booster does not provide overclocking controls, install drivers, or guarantee FPS or ping improvements. " +
+            "Nexus Safe Tweaks does not provide overclocking controls, install drivers, or guarantee FPS or ping improvements. " +
             "You can restore Nexus-managed settings in Recovery before removing the app. No background service or scheduled task is installed.\n\n" +
             "Select Yes to accept this notice and continue.",
-            "Nexus Booster — First launch",
+            "Nexus Safe Tweaks — First launch",
             MessageBoxButton.YesNo,
             MessageBoxImage.Warning,
             MessageBoxResult.No) == MessageBoxResult.Yes;
@@ -57,7 +57,7 @@ public partial class App : Application
     private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
         ShowFailure(
-            "Nexus Booster encountered an unexpected error and will close.",
+            "Nexus Safe Tweaks encountered an unexpected error and will close.",
             "unhandled WPF dispatcher exception",
             e.Exception);
         e.Handled = true;
@@ -72,7 +72,7 @@ public partial class App : Application
             : "The local diagnostic log could not be saved.";
         MessageBox.Show(
             $"{message}\n\n{diagnostic}",
-            "Nexus Booster error",
+            "Nexus Safe Tweaks error",
             MessageBoxButton.OK,
             MessageBoxImage.Error);
     }

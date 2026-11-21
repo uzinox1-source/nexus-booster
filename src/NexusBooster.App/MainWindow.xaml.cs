@@ -255,7 +255,7 @@ public partial class MainWindow : Window
 
         ShowDetail(
             "Recovery & removal",
-            "Nexus has no installer or uninstaller. It stores tweak backups and mouse profiles in your Local AppData folder. Restore changes first; then close the app and delete the Nexus Booster executable/folder yourself.",
+            "Nexus Safe Tweaks has no installer or uninstaller. It stores tweak backups and mouse profiles in your Local AppData folder. Restore changes first; then close the app and delete the Nexus Safe Tweaks executable/folder yourself.",
             warning,
             restore,
             clearProfiles,
