@@ -1,8 +1,8 @@
-# Nexus Booster
+# Nexus Safe Tweaks
 
-A Windows 10/11 desktop PC tuner with opt-in, current-user Windows tweaks and saved mouse DPI presets, plus a separate Focus module. Open **PC Tuner** from the app's left navigation to browse supported tweaks and advanced guidance.
+A Windows 10/11 desktop PC tuning app named **Nexus Safe Tweaks**, with opt-in, current-user Windows tweaks and saved mouse DPI presets, plus a separate Focus module. Open **PC Tuner** from the app's left navigation to browse supported tweaks and advanced guidance.
 
-Nexus Booster is free and open source under the [MIT License](LICENSE). Read the complete license and first-launch notice before using the app.
+Nexus Safe Tweaks is free and open source under the [MIT License](LICENSE). Read the complete license and first-launch notice before using the app.
 
 ## What works in this build
 
@@ -35,6 +35,8 @@ The module sends critique requests only to `http://127.0.0.1:11434`; it does not
 
 The browser helper is a separate, optional Manifest V3 extension in `src/NexusBooster.Focus/BrowserExtension`. The published ZIP carries its files in a `BrowserExtension` folder beside the app; review them, then install the folder manually into each supported Chromium-based browser. It blocks selected distraction paths and removes YouTube home/watch recommendations; it does not cover every browser or every site. Its IRL check-ins are self-reported, and browser activity is not sent to the app.
 
+**Advanced supplied executable:** If `Nexus PC Optimizer.exe` is included in a release ZIP, it is a separately supplied advanced-tuner module, not source code built or reviewed by this repository's solution. It is packaged for the user's convenience only; verify the published hash and signature information, and do not disable SmartScreen or antivirus to trust it. The repository does not claim that the supplied module was signed or its behavior verified.
+
 **System-integration limits:** The Focus module does not install a system-wide proxy, intercept HTTPS, modify the hosts file, terminate processes, minimize or lock browsers, or enforce access to other apps. It does not automatically change Windows color filters; the grayscale button opens Windows accessibility settings for a user-controlled change. Closing the module does not lock the PC, and quest completion is tracked locally rather than enforced outside Nexus.
 
 ## Build and test
@@ -48,7 +50,7 @@ dotnet run --project .\src\NexusBooster.App\NexusBooster.App.csproj
 dotnet publish .\src\NexusBooster.App\NexusBooster.App.csproj -c Release -r win-x64 --self-contained true -o .\artifacts\test-build\publish\win-x64
 ```
 
-The framework-dependent WPF executable is emitted under `artifacts/test-build/bin/NexusBooster.App/`. The self-contained testable executable is published to `artifacts/test-build/publish/win-x64/NexusBooster.App.exe`. The test executable and intermediate build products are also kept under `artifacts/test-build/`, which is ignored by Git.
+The framework-dependent WPF executable is emitted under `artifacts/test-build/bin/NexusBooster.App/`. The self-contained testable executable is published to `artifacts/test-build/publish/win-x64/NexusSafeTweaks.exe`. The test executable and intermediate build products are also kept under `artifacts/test-build/`, which is ignored by Git.
 
 The self-contained single-file executable targets 64-bit Windows 10/11 and does not require the .NET runtime to be preinstalled. The app and its runtime dependencies are bundled, so the app does not require a separate `NexusBooster.App.dll` next to the executable. The release ZIP also includes this README so the included PC Tuner and separate Focus module are clear before launch. Extract the complete release ZIP before running the EXE. No driver, helper service, or hardware overclocking component is bundled.
 
@@ -57,9 +59,9 @@ The self-contained single-file executable targets 64-bit Windows 10/11 and does 
 Keep published binaries un-obfuscated and do not use packers. After publishing an executable, calculate its SHA-256 digest and publish the hash alongside that exact binary:
 
 ```powershell
-Get-FileHash .\artifacts\test-build\publish\win-x64\NexusBooster.App.exe -Algorithm SHA256
+Get-FileHash .\artifacts\test-build\publish\win-x64\NexusSafeTweaks.exe -Algorithm SHA256
 # Or:
-certutil -hashfile .\artifacts\test-build\publish\win-x64\NexusBooster.App.exe SHA256
+certutil -hashfile .\artifacts\test-build\publish\win-x64\NexusSafeTweaks.exe SHA256
 ```
 
 Compare the hash against a copy obtained through a trusted channel. A hash verifies file integrity; it does not prove that the binary is safe or signed. Locally built/unsigned Windows applications may trigger SmartScreen or antivirus warnings. Do not disable security software to run a binary you do not trust. This project does not claim Microsoft or antivirus approval.

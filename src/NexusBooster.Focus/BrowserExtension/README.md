@@ -15,5 +15,5 @@ The extension asks for access only to YouTube, Instagram, Facebook, and Reddit. 
 
 - Rules apply only to the listed sites in browsers where this extension is installed. There is no system-wide proxy, certificate installation, HTTPS interception, hosts-file edit, process termination, browser minimization, or timed browser lock.
 - Instagram/Facebook feed removal depends on their changing page markup. The extension does not block their entire domains.
-- It does not collect browsing history, transmit page data, contact a server, or report Shorts attempts back to Nexus Booster.
+- It does not collect browsing history, transmit page data, contact a server, or report Shorts attempts back to Nexus Safe Tweaks.
 - Remove the extension in the browser's extension manager to reverse its changes.

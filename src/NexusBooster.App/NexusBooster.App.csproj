@@ -1,6 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
+    <AssemblyName>NexusSafeTweaks</AssemblyName>
+    <RootNamespace>NexusSafeTweaks.App</RootNamespace>
+    <AssemblyTitle>Nexus Safe Tweaks</AssemblyTitle>
+    <Product>Nexus Safe Tweaks</Product>
+    <Description>Safe, reversible Windows tuning and the separate Focus module.</Description>
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
